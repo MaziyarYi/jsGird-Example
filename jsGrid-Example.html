@@ -1,0 +1,286 @@
+<div class="label card-title">
+   <h1>Customers</h1>
+</div>
+
+<div id="customerGrid" name="customerGrid"></div>
+
+
+<div class="label card-title" style="padding-top: 5%">
+    <h1>Customer Address Info</h1>
+</div>
+
+<div id="addressGrid" name="addressGrid"></div>
+
+<script>
+
+    var selectedCustomerId;
+
+    $("#customerGrid").jsGrid({
+
+        controller: {
+            loadData: function(filter) {
+                return $.ajax({
+                    type : "POST",
+                    url : "Your URL",
+                    contentType : "application/json; charset=utf-8",
+                    dataType: "json"
+                });
+            },
+            insertItem: function (item) {
+                $.ajax({
+                    type: "POST",
+                    contentType : "application/json; charset=utf-8",
+                    dataType: "json",
+                    url: "Your URL",
+                    data: JSON.stringify(item),
+                    fail : (jqXHR , status , err) => {
+                        alert("Error: " + jqXHR.responseText);
+                    },
+                    success: (response, status, jqXHR) => {
+                        if(response.failed) {
+                            console.log('Faild To Save');
+                            alert("Error: " + response.failed);
+                        }
+                    }
+                }).done(function () {
+                    $('#customerGrid').jsGrid("loadData");
+                });
+            },
+            updateItem: function (item) {
+                $.ajax({
+                    type: "POST",
+                    contentType : "application/json; charset=utf-8",
+                    dataType: "json",
+                    url: "Your URL",
+                    data: JSON.stringify(item),
+                    fail : (jqXHR , status , err) => {
+                        alert("Error: " + jqXHR.responseText);
+                    },
+                    success: (response, status, jqXHR) => {
+                        if(response.failed) {
+                            console.log('Faild To Update');
+                            alert("Error: " + response.failed);
+                        }
+                    }
+                }).done(function () {
+                    $('#customerGrid').jsGrid("loadData");
+                });
+            },
+            deleteItem: function (item) {
+                $.ajax({
+                    type: "POST",
+                    contentType : "application/json; charset=utf-8",
+                    dataType: "json",
+                    url: "Your URL",
+                    data: JSON.stringify(item),
+                    fail : (jqXHR , status , err) => {
+                        alert("Error: " + jqXHR.responseText);
+                    },
+                    success: (response, status, jqXHR) => {
+                        if(response.failed) {
+                            console.log('Faild To Delete');
+                            alert("Error: " + result.failed);
+                        }
+                    }
+                }).done(function () {
+                    $('#customerGrid').jsGrid("loadData");
+                });
+            }
+        },
+
+        fields: [
+            {name: "id" , type: "number",  visible: false, width: 0},
+            {name: "clientNo", type: "text", width: 100, validate: "required"},
+            {name: "firstName", type: "text", width: 100},
+            {name: "lastName", type: "text", width: 100},
+            {name: "nationalId", type: "text", width: 100},
+            {name: "certificationNo", type: "text", sorting: false ,width: 100},
+            {type: "control"}
+        ],
+
+        autoload: true,
+
+        width: "100%",
+        height: "auto",
+
+        heading: true,
+        filtering: true,
+        inserting: true,
+        selecting: true,
+        editing: true,
+        sorting: true,
+
+        paging: true,
+        pageSize: 5,
+        pageButtonCount: 5,
+        pageIndex: 1,
+        pagerFormat: "Pages: {first} {prev} {pages} {next} {last}    {pageIndex} of {pageCount}",
+        pagePrevText: "Prev",
+        pageNextText: "Next",
+        pageFirstText: "First",
+        pageLastText: "Last",
+
+        rowClick: function (args) {
+            selectedCustomerId = args.item.id;
+            var item = $(args.event.target).closest("tr");
+            if(this._clicked_row != null) {
+                this._clicked_row.children('.jsgrid-cell').removeClass('jsgrid-clicked-row').css('background-color' , '#ffffff');
+            }
+            this._clicked_row = item;
+            item.children('.jsgrid-cell').toggleClass('jsgrid-clicked-row').css('background-color' , '#c7d9e7');
+            if(args.item.Editable) {
+                jsGrid.Grid.prototype.rowClick.call(this, args);
+            }
+            $('#addressGrid').jsGrid("loadData", args.item);
+        },
+    });
+
+    var provinces = [];
+    var cities = [];
+
+    $(document).ready(function() {
+        $.ajax({
+            type : "POST",
+            url : "Your URL",
+            contentType : "application/json; charset=utf-8",
+            dataType: "json",
+            success : (response) => {
+                provinces = response;
+                $.ajax({
+                    type : "POST",
+                    url : "Your URL",
+                    contentType : "application/json; charset=utf-8",
+                    dataType: "json",
+                    success : (response) => {
+                        cities = response;
+
+                        $("#addressGrid").jsGrid({
+
+                            controller: {
+                                loadData: function(filter) {
+                                    return $.ajax({
+                                        type : "POST",
+                                        contentType : "application/json; charset=utf-8",
+                                        dataType: "json",
+                                        data: JSON.stringify(filter),
+                                        url : "Your URL",
+                                    });
+                                },
+                                insertItem: function (item) {
+                                    var data = {item : item , customerId : selectedCustomerId }
+                                    $.ajax({
+                                        type: "POST",
+                                        contentType : "application/json; charset=utf-8",
+                                        dataType: "json",
+                                        url: "Your URL",
+                                        data: JSON.stringify(data),
+                                        fail : (jqXHR , status , err) => {
+                                            alert("Error: " + jqXHR.responseText);
+                                        },
+                                        success: (response, status, jqXHR) => {
+                                            if(response.failed) {
+                                                console.log('Faild To Save');
+                                                alert("Error: " + response.failed);
+                                            }
+                                        }
+                                    }).done(function () {
+                                        $('#addressGrid').jsGrid("loadData", {customerId : selectedCustomerId});
+                                    });
+                                },
+                                updateItem: function (item) {
+                                    $.ajax({
+                                        type: "POST",
+                                        contentType : "application/json; charset=utf-8",
+                                        dataType: "json",
+                                        url: "Your URL",
+                                        data: JSON.stringify(item),
+                                        fail : (jqXHR , status , err) => {
+                                            alert("Error: " + jqXHR.responseText);
+                                        },
+                                        success: (response, status, jqXHR) => {
+                                            if(response.failed) {
+                                                console.log('Faild To Update');
+                                                alert("Error: " + response.failed);
+                                            }
+                                        }
+                                    }).done(function () {
+                                        $('#addressGrid').jsGrid("loadData", {customerId : selectedCustomerId});
+                                    });
+                                },
+                                deleteItem: function (item) {
+                                    $.ajax({
+                                        type: "POST",
+                                        contentType : "application/json; charset=utf-8",
+                                        dataType: "json",
+                                        url: "Your URL",
+                                        data: JSON.stringify(item),
+                                        fail : (jqXHR , status , err) => {
+                                            alert("Error: " + jqXHR.responseText);
+                                        },
+                                        success: (response, status, jqXHR) => {
+                                            if(response.failed) {
+                                                console.log('Faild To Delete');
+                                                alert("Error: " + response.failed);
+                                            }
+                                        }
+                                    }).done(function () {
+                                        $('#addressGrid').jsGrid("loadData", {customerId : selectedCustomerId});
+                                    });
+                                }
+                            },
+
+                            fields: [
+                                {name: "id" , type: "number",  visible: false, width: 0},
+                                {name: "province", title:"province" , type: "select", width: 100, items: provinces , valueField:"code", textField:"title"},
+                                {name: "city", title:"city" , type: "select", width: 100, items: cities, valueField: "code", textField: "title"},
+                                {name: "address", type: "text", width: 100},
+                                {name: "postalCode", type: "text", width: 100},
+                                {name: "phone", type: "text", width: 100},
+                                {name: "mobile", type: "text", sorting: false ,width: 100},
+                                {type: "control"}
+                            ],
+
+                            width: "100%",
+                            height: "auto",
+
+                            heading: true,
+                            filtering: true,
+                            inserting: true,
+                            selecting: true,
+                            editing: true,
+                            sorting: true,
+
+                            paging: true,
+                            pageSize: 5,
+                            pageButtonCount: 5,
+                            pageIndex: 1,
+                            pagerFormat: "Pages: {first} {prev} {pages} {next} {last}    {pageIndex} of {pageCount}",
+                            pagePrevText: "Prev",
+                            pageNextText: "Next",
+                            pageFirstText: "First",
+                            pageLastText: "Last",
+
+                            rowClick: function (args) {
+                                var item = $(args.event.target).closest("tr");
+                                if(this._clicked_row != null) {
+                                    this._clicked_row.children('.jsgrid-cell').removeClass('jsgrid-clicked-row').css('background-color' , '#ffffff');
+                                }
+                                this._clicked_row = item;
+                                item.children('.jsgrid-cell').toggleClass('jsgrid-clicked-row').css('background-color' , '#c7d9e7');
+                                if(args.item.Editable) {
+                                    jsGrid.Grid.prototype.rowClick.call(this, args);
+                                }
+                            },
+
+                        });
+                    }
+                })
+             }
+         })
+
+    });
+
+
+
+
+</script>
